@@ -179,6 +179,7 @@
 		  			id: data.id,
 		  			body: data.body,
 		  			update_url: data.update_url,
+		  			destroy_url: data.destroy_url,
 		  			editMode: true,
 		  		})
 				})

@@ -43,7 +43,8 @@ class NotesController extends Controller
             ->json([
             	'id' => $note->id,
             	'body' => $note->body,
-            	'update_url' => $note->update_url,
+              'update_url' => $note->update_url,
+            	'destroy_url' => $note->destroy_url,
             ], 200);
   }  
 

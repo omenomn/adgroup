@@ -12,5 +12,7 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('notes');
 });
+
+Route::get('/notes', 'NotesController@index')->name('notes.index');

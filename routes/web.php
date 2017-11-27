@@ -16,3 +16,9 @@ Route::get('/', function () {
 });
 
 Route::get('/notes', 'NotesController@index')->name('notes.index');
+Route::post('/notes', 'NotesController@store')->name('notes.store');
+Route::patch('/notes/{id}', 'NotesController@update')
+	->name('notes.update')->where('id', '[0-9]+');;
+
+Route::delete('/notes/{id}', 'NotesController@destroy')
+	->name('notes.destroy')->where('id', '[0-9]+');;

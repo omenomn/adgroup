@@ -53,7 +53,7 @@
       </thead>
 
       <tbody>
-      <tr is="note-row" v-for="(note, index) in notes" :item='note' v-on:remove="notes.splice(index, 1)"></tr>
+      <tr is="note-row" v-for="(note, index) in notes" :item='note' v-on:remove="remove(index)"></tr>
       </tbody>
 
     </table>
@@ -91,21 +91,32 @@
 <script src="https://unpkg.com/vue"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"></script>
+<script 
+  src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" 
+  integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" 
+  crossorigin="anonymous"></script>
+<script 
+  src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" 
+  integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" 
+  crossorigin="anonymous"></script>
 <template id='note-row'>
   <tr>
     <td>@{{ item.id }}</td>
-    <td v-if='!item.editMode' @click='changeEditMode'>@{{ item.body }}</td>
+    <td v-if='!item.editMode' @click='changeEditMode' width='70%'>@{{ item.body }}</td>
     <td v-else> 
     	<div class="form-group">
     		<textarea 
     			class="form-control" 
     			rows="3" 
     			v-model='item.body'>@{{ item.body }}</textarea>
+    		<div v-if='errorMessage !== null' class="alert alert-danger mt-3" role="alert">
+				  @{{ errorMessage }}
+				</div>
     	</div>
     	<button 
     		type="submit" 
     		class="btn btn-warning btn-lg btn-block mt-3" 
-    		@click='changeEditMode'>Zapisz</button>   
+    		@click='save'>Zapisz</button>   
     </td>
     <td>
       <button class="btn btn-danger" @click="$emit('remove')">Delete</button>
@@ -116,17 +127,38 @@
   Vue.component('note-row', {
     template: '#note-row',
     props: ['item'],  
+    data: function() {
+    	return {
+    		errorMessage: null,
+    	}
+    },
     watch: {
     	'item.body': function(value) {
+    		if (value !== null)
+    			this.errorMessage = null
     	}
     },
     methods: {
     	changeEditMode: function() {
     		this.item.editMode = !this.item.editMode
-    	},  	 	
+    	},
+    	save: function() {    		
+	  		var self = this
+
+	  		$.post( self.item.update_url, {
+	  			_token: '{{ csrf_token() }}',
+	  			_method: 'PATCH',
+	  			body: self.item.body,
+	  		}).done(function(data) {
+		  		self.changeEditMode()
+				})
+			  .fail(function(jqXHR, textStatus, errorThrown) {
+			  	var response = JSON.parse(jqXHR.responseText)
+			  	self.errorMessage = response.error_message
+			  })
+    	},
     },
     mounted: function() {
-    	console.log(this.item)
     }
   });
 </script>
@@ -134,46 +166,39 @@
 	var app = new Vue({
 	  el: '#notes',
 	  data: {
-	  	notes: [
-	  		{
-	  			id: 1,
-	  			body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et consequat enim, non tristique dolor. Nulla consequat facilisis dolor Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et consequat enim, non tristique dolor. Nulla consequat facilisis dolor Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et consequat enim, non tristique dolor. Nulla consequat facilisis dolor vel pretium. Aenean vitae ultricies ante. Nunc ac enim ante',
-	  			editMode: false,
-	  		},
-	  		{
-	  			id: 2,
-	  			body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et consequat enim, non tristique dolor. Nulla consequat facilisis dolor vel pretium. Aenean vitae ultricies ante. Nunc ac enim ante',
-	  			editMode: false,
-	  		},
-	  		{
-	  			id: 3,
-	  			body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et consequat enim, non tristique dolor. Nulla consequat facilisis dolor vel pretium. Aenean vitae ultricies ante. Nunc ac enim ante',
-	  			editMode: false,
-	  		},
-	  		{
-	  			id: 4,
-	  			body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et consequat enim, non tristique dolor. Nulla consequat facilisis dolor vel pretium. Aenean vitae ultricies ante. Nunc ac enim ante',
-	  			editMode: false,
-	  		},
-	  		{
-	  			id: 5,
-	  			body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et consequat enim, non tristique dolor. Nulla consequat facilisis dolor vel pretium. Aenean vitae ultricies ante. Nunc ac enim ante',
-	  			editMode: false,
-	  		},
-	  		{
-	  			id: 6,
-	  			body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et consequat enim, non tristique dolor. Nulla consequat facilisis dolor vel pretium. Aenean vitae ultricies ante. Nunc ac enim ante',
-	  			editMode: false,
-	  		},
-	  	]
+	  	notes: {!! $notes->toJson() !!},
 	  },
 	  methods: {
 	  	create: function() {
-	  		this.notes.unshift({
-	  			id: null,
-	  			body: null,
-	  			editMode: true,
-	  		})
+	  		var self = this
+
+	  		$.post( "{{ route('notes.store') }}", {
+	  			_token: '{{ csrf_token() }}'
+	  		}).done(function(data) {
+		  		self.notes.unshift({
+		  			id: data.id,
+		  			body: data.body,
+		  			update_url: data.update_url,
+		  			editMode: true,
+		  		})
+				})
+			  .fail(function() {
+			    alert( data.error_message );
+			  })
+	  	}, 
+	  	remove: function(index) {
+
+	  		var self = this
+
+	  		$.post( self.notes[index].destroy_url, {
+	  			_token: '{{ csrf_token() }}',
+	  			_method: 'DELETE',
+	  		}).done(function(data) {
+	  			self.notes.splice(index, 1)
+				})
+			  .fail(function() {
+			    alert( data.error_message );
+			  })
 	  	}
 	  }
 	})

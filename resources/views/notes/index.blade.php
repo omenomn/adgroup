@@ -40,7 +40,7 @@
 
 		<button 
 			class="btn btn-primary float-left mb-3" 
-			@click='create'>Dodaj</button>  
+			@click='create'>Create</button>  
 
     <table class='table table-bordered'>
 
@@ -116,7 +116,7 @@
     	<button 
     		type="submit" 
     		class="btn btn-warning btn-lg btn-block mt-3" 
-    		@click='save'>Zapisz</button>   
+    		@click='save'>Save</button>   
     </td>
     <td>
       <button class="btn btn-danger" @click="$emit('remove')">Delete</button>

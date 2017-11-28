@@ -1,0 +1,3 @@
+I chose Laravel because it is very good and popular framework with a lot of capabilities and I have 2 years commercial expirience on them.
+I used Vuejs because it is very light and powerfull js framework and I have expirience on them to.
+I used mysql because the task does not require use object database like MongoDB.

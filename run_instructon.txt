@@ -1,0 +1,8 @@
+1. Create folder
+2. git clone https://github.com/omenomn/adgroup.git .
+3. composer install
+4. Create database
+5. Create .env file in this directory and copy data from .env.example
+6. Add authoriztation mysql data to .env file
+7. php artisan key:generate
+8. php artisan migrate --seed
